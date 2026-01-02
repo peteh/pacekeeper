@@ -1,6 +1,6 @@
-# Superunner
+# Homebrain Pacekeeper
 
-Research for Superun walkpad.
+Research for Superun walkpad B01.
 
 ## Start without WiFi and App account
 
@@ -25,6 +25,11 @@ Source: <https://www.reddit.com/r/treadmills/comments/1jtuwix/heres_how_you_unlo
 Python web interface to control the threadmill via Bluetooth.
 
 Github project: <https://github.com/azmke/pitpat-treadmill-control>
+
+## Web Bluetooth APP in JS
+
+Fully supports B01
+<https://github.com/KeiranY/PitPat-WebBT/tree/main>
 
 ## qdomyos works on integration
 
