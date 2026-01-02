@@ -275,7 +275,7 @@ void loop()
     }
   }
 
-  if (!doConnect)
+  if (pClient->isConnected() && false)
   {
     log_d("Client connected, sending start command...");
     uint8_t packet[23];
