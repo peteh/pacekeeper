@@ -32,19 +32,41 @@ public:
         m_speed.setMax(6.0f);
         m_speed.setStep(0.1f);
         m_speed.setMode(NumberMode::SLIDER);
+        m_speed.setCustomStateTopic(m_state.getStateTopic());
+        m_speed.setIcon("mdi:speedometer");
+        m_speed.setValueTemplate("{{ value_json.speed_cmd }}");
 
-        m_speedFeedback.setCustomStateTopic(m_speed.getStateTopic());
         m_speedFeedback.setUnit("km/h");
         m_speedFeedback.setStateClass(MqttSensor::StateClass::MEASUREMENT);
+        m_speedFeedback.setCustomStateTopic(m_state.getStateTopic());
+        m_speedFeedback.setIcon("mdi:walk");
+        m_speedFeedback.setValueTemplate("{{ value_json.speed_feedback }}");
 
         m_distance.setUnit("km");
         m_distance.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
+        m_distance.setCustomStateTopic(m_state.getStateTopic());
+        m_distance.setIcon("mdi:map-marker-distance");
+        m_distance.setValueTemplate("{{ value_json.distance_km }}");
+
         m_calories.setUnit("kcal");
         m_calories.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
+        m_calories.setCustomStateTopic(m_state.getStateTopic());
+        m_calories.setIcon("mdi:fire");
+        m_calories.setValueTemplate("{{ value_json.calories }}");
+
         m_steps.setUnit("steps");
         m_steps.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
+        m_steps.setCustomStateTopic(m_state.getStateTopic());
+        m_steps.setIcon("mdi:shoe-print");
+        m_steps.setValueTemplate("{{ value_json.steps }}");
+
+        m_state.setValueTemplate("{{ value_json.state }}");
+        m_state.setIcon("mdi:state-machine");
 
         m_autoreconnectSwitch.setEntityType(EntityCategory::CONFIG);
+        m_autoreconnectSwitch.setIcon("mdi:autorenew");
+
+        m_pauseBtn.setIcon("mdi:play-pause");
     }
 
     MqttDevice &getDevice()
@@ -81,12 +103,7 @@ public:
         publishConfig(m_autoreconnectSwitch);
     }
 
-    void publishSpeed(float speed)
-    {
-        char speed_str[16];
-        snprintf(speed_str, sizeof(speed_str), "%.2f", speed);
-        publishMqttState(m_speed, speed_str);
-    }
+    
 
     void publishAutoReconnectSetting(bool enabled)
     {
@@ -102,30 +119,35 @@ public:
 
     void publishState(TreadMillData data)
     {
-        publishSpeed(data.speedKph);
-        publishMqttState(m_speedFeedback, String(data.speedKph, 2).c_str());
-        publishMqttState(m_distance, String(data.distanceKm, 2).c_str());
-        publishMqttCounterState(m_calories, data.calories);
-        publishMqttCounterState(m_steps, data.steps);
+        JsonDocument state;
+        state["speed_cmd"] = data.speedCmd;
+        state["speed_feedback"] = data.speedFeedback;
+        state["distance_km"] = data.distanceKm;
+        state["calories"] = data.calories;
+        state["steps"] = data.steps;
+
 
         switch (data.status)
         {
         case TreadMillData::STARTING:
-            publishMqttState(m_state, "starting");
+            state["state"] = "starting";
             break;
         case TreadMillData::RUNNING:
-            publishMqttState(m_state, "running");
+            state["state"] = "running";
             break;
         case TreadMillData::PAUSED:
-            publishMqttState(m_state, "paused");
+            state["state"] = "paused";
             break;
         case TreadMillData::STOPPED:
-            publishMqttState(m_state, "stopped");
+            state["state"] = "stopped";
             break;
         default:
-            publishMqttState(m_state, "unknown");
+            state["state"] = "unknown";
             break;
         }
+        String stateStr;
+        serializeJson(state, stateStr);
+        publishMqttState(m_state, stateStr.c_str());
     }
 
 private:
@@ -167,6 +189,13 @@ private:
         {
             log_e("Failed to publish state to %s", entity.getStateTopic());
         }
+    }
+
+    void publishMqttFloat(const MqttEntity &entity, const float value)
+    {
+        char state[16];
+        snprintf(state, sizeof(state), "%.3f", value);
+        publishMqttState(entity, state);
     }
 
     void publishMqttCounterState(MqttEntity &entity, const uint32_t value)

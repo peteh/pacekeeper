@@ -253,7 +253,14 @@ void TreadmillHandler::notifyCallback(
 
     // Parse treadmill fields
     uint16_t current_speed = readU16(pData, 3);
+    uint16_t target_speed = readU16(pData, 5);
+
     uint32_t distance = readU32(pData, 7);
+    
+    // TODO: validate version
+    uint8_t fw_version = pData[25];
+    
+
     uint16_t calories = ((uint16_t)pData[18] << 8) | pData[19];
     uint32_t steps = readU32(pData, 14);
     uint32_t duration = readU32(pData, 20);
@@ -284,7 +291,8 @@ void TreadmillHandler::notifyCallback(
     // log_i("---------------------");
 
     TreadMillData data;
-    data.speedKph = (float)current_speed / 1000.0;
+    data.speedCmd = (float)target_speed / 1000.0;
+    data.speedFeedback = (float)current_speed / 1000.0;
     data.distanceKm = (float)distance / 1000.0;
     data.calories = calories;
     data.steps = steps;
@@ -296,4 +304,7 @@ void TreadmillHandler::notifyCallback(
     {
         m_onDataUpdate(data);
     }
+
+    // TODO: add timestamp and we will regularly 
+    // check that we send updates even if the device is not sending
 }

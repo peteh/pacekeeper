@@ -185,7 +185,7 @@ void setup()
 
   treadmill.setCallback([](const TreadMillData &data)
                         {
-    log_d("Speed: %.2f km/h, Distance: %.2f %d", data.speedKph, data.distanceKm, data.status);
+    log_d("Speed: %.2f km/h, Distance: %.2f %d", data.speedCmd, data.distanceKm, data.status);
     g_mqttView.publishState(data); });
 
   log_i("Starting BLE Client...");

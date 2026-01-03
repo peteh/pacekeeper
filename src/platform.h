@@ -33,7 +33,8 @@ public:
         STOPPED = 3
     };
 
-    float speedKph = 0.0;
+    float speedCmd = 0.0;
+    float speedFeedback = 0.0;
     float distanceKm = 0.0;
     uint16_t calories = 0;
     uint32_t steps = 0;
