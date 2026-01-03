@@ -10,7 +10,7 @@ class MqttView
 public:
     MqttView(PubSubClient *client)
         : m_client(client),
-          m_device(composeClientID().c_str(), "PaceMaker", SYSTEM_NAME, "maker_pt"),
+          m_device(composeClientID().c_str(), "PaceKeeper", SYSTEM_NAME, "maker_pt"),
           m_speed(&m_device, "speed", "Speed"),
           m_speedFeedback(&m_device, "speed-feedback", "Speed Feedback"),
           m_state(&m_device, "state", "State"),
@@ -140,6 +140,9 @@ public:
             break;
         case TreadMillData::STOPPED:
             state["state"] = "stopped";
+            break;
+        case TreadMillData::DISCONNECTED:
+            state["state"] = "disconnected";
             break;
         default:
             state["state"] = "unknown";

@@ -104,6 +104,17 @@ void TreadmillHandler::handle()
             log_e("Failed to connect - Retrying in 5 seconds...");
         }
     }
+
+    if (millis() - m_lastDataTimestamp > CONNECTION_TIMEOUT * 1000)
+    {
+        log_w("No data received from treadmill for %d seconds, marking as disconnected.", CONNECTION_TIMEOUT);
+        m_lastData.status = TreadMillData::DISCONNECTED;
+        m_lastDataTimestamp = millis(); // prevent repeated updates
+        if (m_onDataUpdate)
+        {
+            m_onDataUpdate(m_lastData); 
+        }
+    }
 }
 
 bool TreadmillHandler::connectToServer()
@@ -300,6 +311,7 @@ void TreadmillHandler::notifyCallback(
     data.status = running_state;
 
     m_lastData = data;
+    m_lastDataTimestamp = millis();
     if (m_onDataUpdate)
     {
         m_onDataUpdate(data);

@@ -70,6 +70,7 @@ private:
 
     long m_lastConnectAttempt = 0;
 
+    long m_lastDataTimestamp = 0;
     TreadMillData m_lastData;
 
 
@@ -85,4 +86,6 @@ private:
     }
 
     std::function<void(const TreadMillData&)> m_onDataUpdate = nullptr;
+
+    const uint8_t CONNECTION_TIMEOUT = 30;
 };

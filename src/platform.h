@@ -30,7 +30,8 @@ public:
         STARTING = 0,
         RUNNING = 1,
         PAUSED = 2,
-        STOPPED = 3
+        STOPPED = 3,
+        DISCONNECTED = 100, // Internal state, don't use for treadmill communication
     };
 
     float speedCmd = 0.0;
