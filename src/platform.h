@@ -1,4 +1,5 @@
 #pragma once
+#include <Arduino.h>
 
 #define SYSTEM_NAME "PaceKeeper"
 #define VERSION "2026.1.0"
@@ -18,9 +19,9 @@
 //  CHARACTERISTIC: 0000fba2-0000-1000-8000-00805f9b34fb [read,notify]
 #define CHARACTERISTIC_NOTIFY_STATE_UUID "0000fba2-0000-1000-8000-00805f9b34fb"
 
-// Replace non-inline definitions with inline variables (C++17)
-inline const char* HOMEASSISTANT_STATUS_TOPIC = "homeassistant/status";
-inline const char* HOMEASSISTANT_STATUS_TOPIC_ALT = "ha/status";
+// Declare strings as extern to avoid multiple-definition linker errors
+extern const char* HOMEASSISTANT_STATUS_TOPIC;
+extern const char* HOMEASSISTANT_STATUS_TOPIC_ALT;
 
 class TreadMillData
 {
@@ -40,6 +41,6 @@ public:
     uint16_t calories = 0;
     uint32_t steps = 0;
     uint32_t durationSec = 0;
-    Status status = STOPPED;
+    Status status = DISCONNECTED; // default to DISCONNECTED when we start up
 };
 

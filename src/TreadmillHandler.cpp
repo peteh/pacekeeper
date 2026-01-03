@@ -105,6 +105,7 @@ void TreadmillHandler::handle()
         }
     }
 
+    // Check for connection timeout and send state updates if needed
     if (millis() - m_lastDataTimestamp > CONNECTION_TIMEOUT * 1000)
     {
         log_w("No data received from treadmill for %d seconds, marking as disconnected.", CONNECTION_TIMEOUT);
@@ -122,7 +123,7 @@ bool TreadmillHandler::connectToServer()
     if (m_pClient == nullptr)
     {
         m_pClient = BLEDevice::createClient();
-        m_pClient->setDataLen(64); // Set data length to maximum
+        m_pClient->setDataLen(64); // Set data length to fit packats from device
         m_pClient->setClientCallbacks(this, false);
         m_pClient->setConnectionParams(12, 24, 0, 600); // 15ms to 30ms interval, no latency, 6s timeout
         // m_pClient->setConnectTimeout(20);
@@ -163,7 +164,6 @@ bool TreadmillHandler::connectToServer()
 
     if (m_pNotifyCharacteristic->canNotify())
     {
-        // m_pNotifyCharacteristic->subscribe(true, notifyCallback);
         m_pNotifyCharacteristic->subscribe(
             true,
             [this](NimBLERemoteCharacteristic *chr,
@@ -316,7 +316,4 @@ void TreadmillHandler::notifyCallback(
     {
         m_onDataUpdate(data);
     }
-
-    // TODO: add timestamp and we will regularly 
-    // check that we send updates even if the device is not sending
 }

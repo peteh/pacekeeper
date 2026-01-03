@@ -103,8 +103,6 @@ public:
         publishConfig(m_autoreconnectSwitch);
     }
 
-    
-
     void publishAutoReconnectSetting(bool enabled)
     {
         if (enabled)
@@ -182,30 +180,6 @@ private:
         {
             log_e("Failed to publish config to %s", entity.getStateTopic());
         }
-    }
-
-    void publishMqttConfigState(MqttEntity &entity, const uint32_t value)
-    {
-        char state[9];
-        snprintf(state, sizeof(state), "%08x", value);
-        if (!m_client->publish(entity.getStateTopic(), state))
-        {
-            log_e("Failed to publish state to %s", entity.getStateTopic());
-        }
-    }
-
-    void publishMqttFloat(const MqttEntity &entity, const float value)
-    {
-        char state[16];
-        snprintf(state, sizeof(state), "%.3f", value);
-        publishMqttState(entity, state);
-    }
-
-    void publishMqttCounterState(MqttEntity &entity, const uint32_t value)
-    {
-        char state[9];
-        snprintf(state, sizeof(state), "%u", value);
-        m_client->publish(entity.getStateTopic(), state);
     }
 
     void publishMqttState(const MqttEntity &entity, const char *state)

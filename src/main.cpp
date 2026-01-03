@@ -64,6 +64,7 @@ bool connectToMqtt()
   client.subscribe(HOMEASSISTANT_STATUS_TOPIC_ALT);
 
   g_mqttView.publishAllConfigs();
+  delay(200); // give mqtt broker some time to process all config messages
   g_mqttView.publishState(treadmill.getLastData());
   g_mqttView.publishAutoReconnectSetting(treadmill.getAutoReconnect());
 
@@ -138,13 +139,13 @@ void callback(char *topic, byte *payload, unsigned int length)
     if (strncmp((char *)payload, "online", length) == 0)
     {
       g_mqttView.publishAllConfigs();
+      delay(200); // give mqtt broker some time to process all config messages
       g_mqttView.publishState(treadmill.getLastData());
       g_mqttView.publishAutoReconnectSetting(treadmill.getAutoReconnect());
     }
   }
 }
 
-// --- Setup ---
 void setup()
 {
   // initialize watchdog
@@ -227,8 +228,7 @@ void setup()
     } });
   ArduinoOTA.begin();
 }
-int currentspeed = 1000;
-// --- Loop ---
+
 void loop()
 {
   // reset watchdog, important to be called once each loop.
@@ -276,22 +276,7 @@ void loop()
 
   client.loop();
   treadmill.handle();
-  if (treadmill.isConnected() && false)
-  {
-    log_d("Client connected, sending start command...");
 
-    currentspeed += 100;
-    if (currentspeed > 2500)
-    {
-      currentspeed = 900;
-      treadmill.stop();
-    }
-    else
-    {
-      treadmill.setSpeed(currentspeed);
-    }
-    delay(5000);
-  }
   // Notifications are handled in the callback
-  delay(1000);
+  delay(100);
 }
