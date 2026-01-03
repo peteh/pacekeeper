@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 
+#include "platform.h"
+
 class TreadmillHandler : public NimBLEClientCallbacks
 {
 public:
@@ -15,6 +17,16 @@ public:
 
     void handle();
 
+    void setAutoReconnect(const bool enable)
+    {
+        m_autoReconnect = enable;
+    }
+
+    bool getAutoReconnect() const
+    {
+        return m_autoReconnect;
+    }
+
     bool isConnected() const
     {
         return m_pClient && m_pClient->isConnected();
@@ -27,11 +39,23 @@ public:
         CMD_STOP = 0
     };
 
+    TreadMillData getLastData() const
+    {
+        return m_lastData;
+    }
+
+    void setCallback(std::function<void(const TreadMillData&)> callback)
+    {
+        m_onDataUpdate = callback;
+    }
+    // add a custom callback for data updates
+    
+
 private:
     bool sendCommand(const uint8_t *data, size_t length);
     void makePacket(CommandType command, uint16_t speed, uint8_t *outPacket);
     bool connectToServer();
-    static void notifyCallback(
+    void notifyCallback(
         NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
         uint8_t *pData,
         size_t length,
@@ -42,6 +66,12 @@ private:
     NimBLERemoteCharacteristic *m_pWriteCharacteristic = nullptr;
     NimBLEAddress m_targetAddress;
     bool m_doConnect = false;
+    bool m_autoReconnect = true;
+
+    long m_lastConnectAttempt = 0;
+
+    TreadMillData m_lastData;
+
 
     void onConnect(BLEClient *pClient) override
     {
@@ -53,4 +83,6 @@ private:
         Serial.println("Disconnected! Will attempt reconnect...");
         m_doConnect = true; // Trigger reconnect in loop
     }
+
+    std::function<void(const TreadMillData&)> m_onDataUpdate = nullptr;
 };

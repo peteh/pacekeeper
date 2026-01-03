@@ -1,0 +1,18 @@
+#pragma once
+#include <Arduino.h>
+
+// your network SSID (name)
+#define DEFAULT_STA_WIFI_SSID "wifissid"
+// your network password (use for WPA)
+#define DEFAULT_STA_WIFI_PASS "wifipass" 
+
+// mqtt server
+#define MQTT_SERVER "192.168.2.50"
+#define MQTT_PORT 1883
+#define MQTT_USER ""
+#define MQTT_PASS ""
+
+// treadmill bluetooth address
+#define TARGET_ADDRESS "AB:CD:EF:12:34:56"
+
+
