@@ -4,6 +4,10 @@ PaceKeeper is an ESP32 bridge that connects via Bluetooth to your WalkingPad and
 
 ![Home Assistant PaceKeeper Device](doc/ha_device.png)
 
+See the video on Youtube:
+
+[![Usage video](https://img.youtube.com/vi/Pwt5jl2jNe4/0.jpg)](https://www.youtube.com/watch?v=Pwt5jl2jNe4)
+
 ## Supported Hardware
 
 * PitPat-T01 Treadmill – Superun BA06-B1 [[AliExpress](https://s.click.aliexpress.com/e/_c3V1ssrv)]
