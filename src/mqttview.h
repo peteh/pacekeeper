@@ -15,48 +15,58 @@ public:
           m_speedFeedback(&m_device, "speed-feedback", "Speed Feedback"),
           m_state(&m_device, "state", "State"),
           m_distance(&m_device, "distance", "Distance"),
+          m_duration(&m_device, "duration", "Duration"),
           m_calories(&m_device, "calories", "Calories"),
           m_steps(&m_device, "steps", "Steps"),
           m_pauseBtn(&m_device, "pause", "Pause"),
-          // Configuration Settings
 
-          m_autoreconnectSwitch(&m_device, "auto-reconnect", "Auto Reconnect")
-    // Diagnostics Elements
+          // Configuration Settings
+          m_autoreconnectSwitch(&m_device, "auto-reconnect", "Auto Reconnect"),
+          // Diagnostics Elements
+          m_maxSpeed(&m_device, "max-speed", "Max Speed"),
+          m_firmware(&m_device, "firmware", "Firmware Version")
+
     {
 
         m_device.setSWVersion(VERSION);
 
         // further mqtt device config
+        m_speed.setCustomStateTopic(m_state.getStateTopic());
         m_speed.setUnit("km/h");
+        m_speed.setDeviceClass("speed");
         m_speed.setMin(0.0f);
         m_speed.setMax(6.0f);
         m_speed.setStep(0.1f);
         m_speed.setMode(NumberMode::SLIDER);
-        m_speed.setCustomStateTopic(m_state.getStateTopic());
-        m_speed.setIcon("mdi:speedometer");
         m_speed.setValueTemplate("{{ value_json.speed_cmd }}");
 
-        m_speedFeedback.setUnit("km/h");
-        m_speedFeedback.setStateClass(MqttSensor::StateClass::MEASUREMENT);
         m_speedFeedback.setCustomStateTopic(m_state.getStateTopic());
-        m_speedFeedback.setIcon("mdi:walk");
+        m_speedFeedback.setUnit("km/h");
+        m_speedFeedback.setDeviceClass("speed");
+        m_speedFeedback.setStateClass(MqttSensor::StateClass::MEASUREMENT);
         m_speedFeedback.setValueTemplate("{{ value_json.speed_feedback }}");
 
-        m_distance.setUnit("km");
-        m_distance.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
         m_distance.setCustomStateTopic(m_state.getStateTopic());
-        m_distance.setIcon("mdi:map-marker-distance");
+        m_distance.setUnit("km");
+        m_distance.setDeviceClass("distance");
+        m_distance.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
         m_distance.setValueTemplate("{{ value_json.distance_km }}");
 
-        m_calories.setUnit("kcal");
-        m_calories.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
+        m_duration.setCustomStateTopic(m_state.getStateTopic());
+        m_duration.setUnit("s");
+        m_duration.setDeviceClass("duration");
+        m_duration.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
+        m_duration.setValueTemplate("{{ value_json.duration_sec }}");
+
         m_calories.setCustomStateTopic(m_state.getStateTopic());
-        m_calories.setIcon("mdi:fire");
+        m_calories.setUnit("cal");
+        m_calories.setDeviceClass("energy");
+        m_calories.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
         m_calories.setValueTemplate("{{ value_json.calories }}");
 
+        m_steps.setCustomStateTopic(m_state.getStateTopic());
         m_steps.setUnit("steps");
         m_steps.setStateClass(MqttSensor::StateClass::TOTAL_INCREASING);
-        m_steps.setCustomStateTopic(m_state.getStateTopic());
         m_steps.setIcon("mdi:shoe-print");
         m_steps.setValueTemplate("{{ value_json.steps }}");
 
@@ -65,6 +75,17 @@ public:
 
         m_autoreconnectSwitch.setEntityType(EntityCategory::CONFIG);
         m_autoreconnectSwitch.setIcon("mdi:autorenew");
+
+        m_maxSpeed.setCustomStateTopic(m_state.getStateTopic());
+        m_maxSpeed.setEntityType(EntityCategory::DIAGNOSTIC);
+        m_maxSpeed.setUnit("km/h");
+        m_maxSpeed.setDeviceClass("speed");
+        m_maxSpeed.setValueTemplate("{{ value_json.speed_max }}");
+
+        m_firmware.setCustomStateTopic(m_state.getStateTopic());
+        m_firmware.setEntityType(EntityCategory::DIAGNOSTIC);
+        m_firmware.setValueTemplate("{{ value_json.fw }}");
+        m_firmware.setIcon("mdi:chip");
 
         m_pauseBtn.setIcon("mdi:play-pause");
     }
@@ -91,16 +112,26 @@ public:
 
     void publishAllConfigs()
     {
+        // Controls
+        publishConfig(m_pauseBtn);
         publishConfig(m_speed);
+
+        // Sensors
         publishConfig(m_speedFeedback);
         publishConfig(m_state);
-
         publishConfig(m_distance);
+        publishConfig(m_duration);
         publishConfig(m_calories);
-        publishConfig(m_steps);
 
-        publishConfig(m_pauseBtn);
+        // TODO: steps are actually not implemented in this type of treadmill
+        // publishConfig(m_steps);
+
+        // Configuration
         publishConfig(m_autoreconnectSwitch);
+
+        // Diagnostics
+        publishConfig(m_maxSpeed);
+        publishConfig(m_firmware);
     }
 
     void publishAutoReconnectSetting(bool enabled)
@@ -120,15 +151,17 @@ public:
         JsonDocument state;
         state["speed_cmd"] = data.speedCmd;
         state["speed_feedback"] = data.speedFeedback;
+        state["speed_max"] = data.speedMax;
         state["distance_km"] = data.distanceKm;
+        state["duration_sec"] = data.durationSec;
         state["calories"] = data.calories;
         state["steps"] = data.steps;
-
+        state["fw"] = data.fwVersion;
 
         switch (data.status)
         {
-        case TreadMillData::STARTING:
-            state["state"] = "starting";
+        case TreadMillData::COUNTDOWN:
+            state["state"] = "countdown";
             break;
         case TreadMillData::RUNNING:
             state["state"] = "running";
@@ -155,16 +188,27 @@ private:
     PubSubClient *m_client;
 
     MqttDevice m_device;
-    MqttNumber m_speed;
-    MqttSensor m_speedFeedback;
 
-    MqttSensor m_distance;
+    // Controls
+    MqttNumber m_speed;
+    MqttButton m_pauseBtn;
+
+    // Sensors
     MqttSensor m_calories;
+    MqttSensor m_distance;
+    MqttSensor m_duration;
+    MqttSensor m_speedFeedback;
+    MqttSensor m_state;
+
     MqttSensor m_steps;
 
-    MqttSensor m_state;
-    MqttButton m_pauseBtn;
+    // Configuration
+
     MqttSwitch m_autoreconnectSwitch;
+
+    // Diagnostics
+    MqttSensor m_maxSpeed;
+    MqttSensor m_firmware;
 
     void publishConfig(MqttEntity &entity)
     {

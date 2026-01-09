@@ -94,7 +94,7 @@ void TreadmillHandler::handle()
     if (m_doConnect && (millis() - m_lastConnectAttempt > 5000) && m_autoReconnect)
     {
         m_lastConnectAttempt = millis();
-        if (this->connectToServer())
+        if (this->connectToDevice())
         {
             log_i("Connection successful.");
             m_doConnect = false;
@@ -118,7 +118,7 @@ void TreadmillHandler::handle()
     }
 }
 
-bool TreadmillHandler::connectToServer()
+bool TreadmillHandler::connectToDevice()
 {
     if (m_pClient == nullptr)
     {
@@ -270,27 +270,29 @@ void TreadmillHandler::notifyCallback(
     
     // TODO: validate version
     uint8_t fw_version = pData[25];
-    
 
-    uint16_t calories = ((uint16_t)pData[18] << 8) | pData[19];
+    //uint16_t calories = ((uint16_t)pData[18] << 8) | pData[19];
+    uint16_t calories = readU16(pData, 18);
     uint32_t steps = readU32(pData, 14);
     uint32_t duration = readU32(pData, 20);
     uint8_t flags = pData[26];
+
+    uint16_t maxRunSpeed = readU16(pData, 27);
 
     uint8_t unit_mode = (flags & 128) ? 1 : 0;
     uint8_t running_state_bits = flags & 24;
 
     TreadMillData::Status running_state = TreadMillData::STOPPED; // Default stopped
     if (running_state_bits == 24)
-        running_state = TreadMillData::STARTING;
+        running_state = TreadMillData::COUNTDOWN;
     else if (running_state_bits == 8)
         running_state = TreadMillData::RUNNING;
     else if (running_state_bits == 16)
         running_state = TreadMillData::PAUSED;
 
-    const char *statusArr[] = {"Starting", "Running", "Paused", "Stopped"};
+    const char *statusArr[] = {"Countdown", "Running", "Paused", "Stopped"};
     const char *speed_unit = (unit_mode == 1) ? "mph" : "kph";
-    const char *distance_unit = (unit_mode == 1) ? "mi" : "km";
+    const char *distance_unit = (unit_mode == 1) ? "mi" : "km";   
 
     // log_i("--- Treadmill Data ---");
     // log_i("Speed: %.2f %s", (float)current_speed / 1000.0, speed_unit);
@@ -309,6 +311,10 @@ void TreadmillHandler::notifyCallback(
     data.steps = steps;
     data.durationSec = duration / 1000;
     data.status = running_state;
+    data.fwVersion = fw_version;
+    data.speedMax = (float)maxRunSpeed / 1000.0;
+
+    log_d("Max run speed: %.2f %s, FW version: %d", (float)maxRunSpeed / 1000.0, speed_unit, fw_version);
 
     m_lastData = data;
     m_lastDataTimestamp = millis();

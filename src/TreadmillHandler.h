@@ -48,13 +48,12 @@ public:
     {
         m_onDataUpdate = callback;
     }
-    // add a custom callback for data updates
     
 
 private:
     bool sendCommand(const uint8_t *data, size_t length);
     void makePacket(CommandType command, uint16_t speed, uint8_t *outPacket);
-    bool connectToServer();
+    bool connectToDevice();
     void notifyCallback(
         NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
         uint8_t *pData,

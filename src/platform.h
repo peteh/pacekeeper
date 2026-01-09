@@ -2,7 +2,7 @@
 #include <Arduino.h>
 
 #define SYSTEM_NAME "PaceKeeper"
-#define VERSION "2026.1.0"
+#define VERSION "2026.1.1"
 
 // SERVICE: 00001800-0000-1000-8000-00805f9b34fb (Generic Access Profile)
 //   CHARACTERISTIC: 00002a01-0000-1000-8000-00805f9b34fb [read]
@@ -28,7 +28,7 @@ class TreadMillData
 public:
     enum Status
     {
-        STARTING = 0,
+        COUNTDOWN = 0,
         RUNNING = 1,
         PAUSED = 2,
         STOPPED = 3,
@@ -37,10 +37,11 @@ public:
 
     float speedCmd = 0.0;
     float speedFeedback = 0.0;
+    float speedMax = 0.0;
     float distanceKm = 0.0;
     uint16_t calories = 0;
     uint32_t steps = 0;
     uint32_t durationSec = 0;
+    uint8_t fwVersion = 0;
     Status status = DISCONNECTED; // default to DISCONNECTED when we start up
 };
-
